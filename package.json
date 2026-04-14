@@ -1,0 +1,30 @@
+{
+  "name": "ai-demo-video-generator",
+  "version": "1.0.0",
+  "description": "Automated website demo video generator with AI voiceover and captions",
+  "scripts": {
+    "generate": "tsx src/pipeline/generate.ts",
+    "voiceover": "tsx src/pipeline/voiceover.ts",
+    "preview": "remotion preview src/index.ts",
+    "render": "remotion render src/index.ts DemoVideo",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@remotion/cli": "^4.0.0",
+    "@remotion/media-utils": "^4.0.0",
+    "@remotion/player": "^4.0.0",
+    "dotenv": "^16.4.0",
+    "playwright": "^1.48.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "remotion": "^4.0.0",
+    "tsx": "^4.19.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "typescript": "^5.6.0"
+  }
+}

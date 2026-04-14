@@ -1,0 +1,38 @@
+[
+  {
+    "startSec": 0,
+    "text": "This is Oplit Copilot. A real-time decision center where factory leaders run their entire production network through financial metrics."
+  },
+  {
+    "startSec": 10,
+    "text": "Drilling into the Gien plant, the agents have detected critical alerts and recommend actions the manager can take or delegate to the AI."
+  },
+  {
+    "startSec": 20,
+    "text": "The AI agents work autonomously. They rerouted batch orders, triggered a forward purchase before a price increase, and flagged a capacity risk before it became critical."
+  },
+  {
+    "startSec": 31,
+    "text": "The analytics layer turns raw operational data into financial clarity. Run rates, margins, inventory levels, all tracked across sites."
+  },
+  {
+    "startSec": 41,
+    "text": "Each plant has its own management view. The plant director sees exactly where the gaps are and which product references need attention."
+  },
+  {
+    "startSec": 51,
+    "text": "Here is what makes this possible. Oplit produces a detailed, realistic production schedule spanning weeks into the future. Every machine, every order, planned to the minute after comparing millions of scenarios."
+  },
+  {
+    "startSec": 60,
+    "text": "Because the schedule is so detailed, every operator on the floor knows exactly what to produce, on which machine, at any time. The instructions are always the best possible trade-off between service levels, inventory, and costs."
+  },
+  {
+    "startSec": 85,
+    "text": "The AI module ties it all together. A dashboard analyst to easily build reports on top of the factory Knowledge Models, a recommendation engine to have strategic discussions with the AI, and specialized agents like Claire who orchestrates supply chain trade-offs across all sites."
+  },
+  {
+    "startSec": 108,
+    "text": "Finally, the planning rules engine. Managers define business rules. The AI analyzes impact, simulates changes, and routes them through a governed approval workflow. From human intent to validated deployment. This is the future: factories piloted by AI, with humans in command."
+  }
+]
