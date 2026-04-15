@@ -54,6 +54,10 @@ async function generateAudio(
   config: ElevenLabsConfig
 ): Promise<number> {
   try {
+    if (!config.apiKey) {
+      throw new Error("No API key — using fallback");
+    }
+
     const voiceId = config.voiceId || DEFAULT_VOICE_ID;
     const url = `${ELEVENLABS_API_URL}/text-to-speech/${voiceId}`;
 
@@ -125,11 +129,11 @@ export async function generateAllAudio(
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
-    throw new Error("ELEVENLABS_API_KEY is required in .env");
+    console.warn("⚠️  No ELEVENLABS_API_KEY — will use macOS 'say' fallback for all scenes");
   }
 
   const config: ElevenLabsConfig = {
-    apiKey,
+    apiKey: apiKey || "",
     voiceId: process.env.ELEVENLABS_VOICE_ID || DEFAULT_VOICE_ID,
     modelId: process.env.ELEVENLABS_MODEL_ID,
   };

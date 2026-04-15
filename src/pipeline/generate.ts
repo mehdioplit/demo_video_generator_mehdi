@@ -4,8 +4,8 @@
  *
  * Usage:
  *   npm run generate -- --url "https://example.com" --prompt "Highlight the scheduling features"
+ *   npm run generate -- --url "https://example.com" --script ./script.json   # skip Claude, use pre-made script
  *   npm run generate -- --url "https://example.com" --prompt "..." --output "./output/demo.mp4"
- *   npm run generate -- --url "https://example.com" --prompt "..." --voice-id "EXAVITQu4vr4xnSDxMaL"
  */
 
 import dotenv from "dotenv";
@@ -19,12 +19,13 @@ import { generateScript } from "./scriptWriter";
 import { generateAllAudio, concatenateAudio } from "./tts";
 import { generateCaptions, exportSRT } from "./captions";
 import { renderVideo } from "./render";
-import type { VideoData } from "../types";
+import type { VideoData, VideoScript } from "../types";
 
 // --- CLI argument parsing ---
 function parseArgs(): {
   url: string;
   prompt: string;
+  scriptFile?: string;
   output: string;
   width: number;
   height: number;
@@ -40,34 +41,38 @@ function parseArgs(): {
 
   const url = get("--url");
   const prompt = get("--prompt");
+  const scriptFile = get("--script");
 
-  if (!url || !prompt) {
+  if (!url || (!prompt && !scriptFile)) {
     console.error(`
 🎬 AI Demo Video Generator
 
 Usage:
   npm run generate -- --url <website-url> --prompt <description>
+  npm run generate -- --url <website-url> --script <path-to-script.json>
 
 Options:
-  --url        Website URL to create a demo for (required)
-  --prompt     What to focus on in the demo (required)
-  --output     Output MP4 path (default: ./output/demo.mp4)
-  --width      Video width (default: 1920)
-  --height     Video height (default: 1080)
-  --fps        Frames per second (default: 30)
-  --voice-id   ElevenLabs voice ID (default: Rachel)
+  --url          Website URL to create a demo for (required)
+  --prompt       What to focus on in the demo (required unless --script)
+  --script       Path to a pre-made script JSON (skips Claude API call)
+  --output       Output MP4 path (default: ./output/demo.mp4)
+  --width        Video width (default: 1920)
+  --height       Video height (default: 1080)
+  --fps          Frames per second (default: 30)
+  --voice-id     ElevenLabs voice ID (default: Rachel)
   --skip-render  Skip Remotion render (useful for debugging pipeline)
 
 Examples:
   npm run generate -- --url "https://oplit.fr" --prompt "Show the workforce scheduling features"
-  npm run generate -- --url "https://myapp.com" --prompt "Product demo for enterprise clients" --fps 60
+  npm run generate -- --url "https://myapp.com" --script ./my-script.json
 `);
     process.exit(1);
   }
 
   return {
     url,
-    prompt,
+    prompt: prompt || "",
+    scriptFile,
     output: get("--output") || "./output/demo.mp4",
     width: parseInt(get("--width") || "1920", 10),
     height: parseInt(get("--height") || "1080", 10),
@@ -96,32 +101,52 @@ async function main() {
   console.log("🎬 AI Demo Video Generator");
   console.log("=".repeat(60));
   console.log(`URL:    ${config.url}`);
-  console.log(`Prompt: ${config.prompt}`);
+  if (config.scriptFile) {
+    console.log(`Script: ${config.scriptFile} (pre-made, skipping Claude)`);
+  } else {
+    console.log(`Prompt: ${config.prompt}`);
+  }
   console.log(`Output: ${config.output}`);
   console.log(`Size:   ${config.width}x${config.height} @ ${config.fps}fps`);
   console.log("=".repeat(60));
 
-  // ─── Step 1: Capture website ───────────────────────────────────
-  console.log("\n📸 Step 1/5: Capturing website...\n");
-  const capture = await captureWebsite(config.url, workDir, {
-    width: config.width,
-    height: config.height,
-  });
+  let script: VideoScript;
 
-  // ─── Step 2: Generate script ───────────────────────────────────
-  console.log("\n🤖 Step 2/5: Generating video script...\n");
-  const script = await generateScript(
-    config.url,
-    capture.textContent,
-    capture.discoveredPages,
-    config.prompt
-  );
+  if (config.scriptFile) {
+    // ─── Load pre-made script ──────────────────────────────────────
+    console.log("\n📄 Loading pre-made script...\n");
+    const raw = fs.readFileSync(path.resolve(config.scriptFile), "utf-8");
+    script = JSON.parse(raw);
+    console.log(`✅ Script loaded: "${script.title}" — ${script.scenes.length} scenes, ~${script.totalDurationSec}s total`);
 
-  // Save script for debugging
-  fs.writeFileSync(
-    path.join(workDir, "script.json"),
-    JSON.stringify(script, null, 2)
-  );
+    // Save script copy for debugging
+    fs.writeFileSync(
+      path.join(workDir, "script.json"),
+      JSON.stringify(script, null, 2)
+    );
+  } else {
+    // ─── Step 1: Capture website ───────────────────────────────────
+    console.log("\n📸 Step 1/5: Capturing website...\n");
+    const capture = await captureWebsite(config.url, workDir, {
+      width: config.width,
+      height: config.height,
+    });
+
+    // ─── Step 2: Generate script ───────────────────────────────────
+    console.log("\n🤖 Step 2/5: Generating video script...\n");
+    script = await generateScript(
+      config.url,
+      capture.textContent,
+      capture.discoveredPages,
+      config.prompt
+    );
+
+    // Save script for debugging
+    fs.writeFileSync(
+      path.join(workDir, "script.json"),
+      JSON.stringify(script, null, 2)
+    );
+  }
 
   // ─── Step 3: Capture scene screenshots ─────────────────────────
   console.log("\n📸 Step 3/5: Capturing scene screenshots...\n");

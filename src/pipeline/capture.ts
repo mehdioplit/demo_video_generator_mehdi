@@ -162,6 +162,12 @@ export async function captureAllScenes(
           waitUntil: "networkidle",
           timeout: 30000,
         });
+        // Wait for React to finish rendering (spinners, animations, data loading)
+        await page.waitForTimeout(3000);
+        // Wait for any loading spinners to disappear
+        try {
+          await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 5000 });
+        } catch {}
         currentUrl = scene.pageUrl;
       }
 
@@ -174,15 +180,46 @@ export async function captureAllScenes(
 
       // Perform click action if needed
       if (scene.action === "click" && scene.selector) {
-        try {
-          await page.click(scene.selector, { timeout: 3000 });
-          await page.waitForTimeout(500);
-        } catch {
+        let clicked = false;
+
+        // Strategy 1: text= selector via getByText
+        const textMatch = scene.selector.match(/^text=["']?(.+?)["']?$/);
+        if (textMatch && !clicked) {
+          try {
+            await page.getByText(textMatch[1], { exact: true }).first().click({ timeout: 5000 });
+            clicked = true;
+          } catch {
+            try {
+              await page.getByText(textMatch[1], { exact: false }).first().click({ timeout: 3000 });
+              clicked = true;
+            } catch {}
+          }
+        }
+
+        // Strategy 2: CSS selector or Playwright locator
+        if (!clicked) {
+          try {
+            await page.locator(scene.selector).first().click({ timeout: 5000 });
+            clicked = true;
+          } catch {}
+        }
+
+        // Strategy 3: raw page.click
+        if (!clicked) {
+          try {
+            await page.click(scene.selector, { timeout: 3000 });
+            clicked = true;
+          } catch {}
+        }
+
+        if (clicked) {
+          await page.waitForTimeout(2000);
+        } else {
           console.warn(`⚠️  Could not click: ${scene.selector}`);
         }
       }
 
-      await page.waitForTimeout(300); // Brief settle time
+      await page.waitForTimeout(1500); // Let animations and transitions settle
       await page.screenshot({ path: outputPath, type: "png" });
       scene.screenshotPath = outputPath;
       console.log(`  ✅ Scene ${scene.index}: ${outputPath}`);
