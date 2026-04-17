@@ -25,6 +25,7 @@ import subprocess
 import time
 import argparse
 import json
+import shutil
 
 
 def get_repo_dir(mode: str) -> str:
@@ -299,6 +300,29 @@ def main():
     else:
         print("\n-- Skipping config generation (--no-api flag)")
 
+    # Step 1b: Build static site
+    site_output = os.path.abspath(f"./output/site_{safe_name}_{args.mode.lower()}")
+    print(f"\n{'='*60}")
+    print(f"Step 1b: Building static site")
+    print(f"{'='*60}\n")
+    build_result = subprocess.run(["npx", "vite", "build"], cwd=repo_dir)
+    if build_result.returncode == 0:
+        dist_dir = os.path.join(repo_dir, "dist")
+        if os.path.isdir(dist_dir):
+            if os.path.isdir(site_output):
+                shutil.rmtree(site_output)
+            shutil.copytree(dist_dir, site_output)
+            # Add a serve script for easy local viewing
+            with open(os.path.join(site_output, "serve.sh"), "w") as f:
+                f.write("#!/bin/bash\necho 'Site running at http://localhost:4173'\npython3 -m http.server 4173\n")
+            os.chmod(os.path.join(site_output, "serve.sh"), 0o755)
+            print(f"Static site copied to: {site_output}")
+            print(f"  To view: cd {site_output} && ./serve.sh")
+        else:
+            print("Warning: dist/ not found after build")
+    else:
+        print("Warning: Build failed, skipping static site export")
+
     # Step 2: Start dev server
     server_proc = step2_start_dev_server(repo_dir, args.port)
 
@@ -334,6 +358,8 @@ def main():
             print(f"\n{'='*60}")
             print(f"Done!")
             print(f"  Video: {output_path}")
+            if os.path.isdir(site_output):
+                print(f"  Site:  {site_output}/index.html")
             print(f"{'='*60}")
 
     finally:
