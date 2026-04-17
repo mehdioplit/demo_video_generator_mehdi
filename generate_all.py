@@ -28,16 +28,26 @@ import json
 
 
 def get_repo_dir(mode: str) -> str:
+    """Find the MTS/MTO repo as a sibling folder."""
     base = os.path.dirname(os.path.abspath(__file__))
-    if mode == "MTS":
-        return os.path.join(base, "copilot-pierre-fabre")
-    else:
-        return os.path.join(base, "site-status-board")
+    parent = os.path.dirname(base)
+
+    mts_names = ["demo_MTS", "copilot-pierre-fabre"]
+    mto_names = ["demo_MTO", "site-status-board"]
+    names = mts_names if mode == "MTS" else mto_names
+
+    for search_dir in [parent, base]:
+        for name in names:
+            path = os.path.join(search_dir, name)
+            if os.path.isdir(path):
+                return path
+
+    print(f"Error: Could not find {mode} repo. Looked for: {names}")
+    sys.exit(1)
 
 
 def get_video_dir() -> str:
-    base = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(base, "demo-video-generator")
+    return os.path.dirname(os.path.abspath(__file__))
 
 
 def step1_generate_config(client_name: str, mode: str, repo_dir: str):
@@ -92,31 +102,31 @@ def generate_static_script(client_name: str, mode: str, port: int) -> dict:
             "pageUrl": base_url,
             "scrollPercent": 0.0,
             "action": "static",
-            "narration": f"Welcome to the {client_name} Supply Chain Copilot. This is the live operations dashboard showing real-time status across all production sites.",
-            "durationSec": 10,
+            "narration": f"This is {client_name} x Oplit Copilot. It connects the entire production network into a single decision layer. All plants, all teams, sharing the same real-time picture.",
+            "durationSec": 14,
         },
         {
             "index": 1,
             "pageUrl": f"{base_url}/plant/1/decisions",
             "scrollPercent": 0.0,
             "action": "static",
-            "narration": "Drilling into a plant, the decision support system shows prioritized actions. Critical alerts are highlighted with detailed impact analysis.",
-            "durationSec": 10,
+            "narration": f"Drilling into a plant, the AI has detected critical alerts and recommends actions the manager can take or delegate to the agents. Every decision comes with a full impact analysis.",
+            "durationSec": 12,
         },
         {
             "index": 2,
             "pageUrl": f"{base_url}/plant/1/decisions",
             "scrollPercent": 0.5,
             "action": "scroll",
-            "narration": "Decisions span supply, demand, production, and stock categories. Managers can assign, approve, or escalate each decision directly.",
-            "durationSec": 10,
+            "narration": "Decisions span supply, demand, production, and stock. Each one is prioritized, assigned, and tracked through resolution. No more spreadsheets, no more blind spots.",
+            "durationSec": 11,
         },
         {
             "index": 3,
             "pageUrl": f"{base_url}/analytics",
             "scrollPercent": 0.0,
             "action": "static",
-            "narration": f"The analytics layer turns raw operational data into clarity. Run rates, margins, and performance metrics are tracked across all {client_name} sites.",
+            "narration": f"The analytics layer turns raw operational data into financial clarity. Run rates, margins, inventory levels, all tracked across {client_name}'s sites.",
             "durationSec": 10,
         },
         {
@@ -124,17 +134,16 @@ def generate_static_script(client_name: str, mode: str, port: int) -> dict:
             "pageUrl": f"{base_url}/plant-management",
             "scrollPercent": 0.0,
             "action": "static",
-            "narration": "The plant management view provides deep operational insights. Demand charts, production trends, and inventory levels are tracked in real time.",
+            "narration": "Each plant has its own management view. The plant director sees exactly where the gaps are and which product references need attention.",
             "durationSec": 10,
         },
         {
             "index": 5,
             "pageUrl": f"{base_url}/plant-management/1",
             "scrollPercent": 0.0,
-            "action": "click",
-            "selector": "text=Show Actual Schedule",
-            "narration": "Here is what makes this possible. A detailed, realistic production schedule spanning weeks into the future. Every machine, every order, planned to the minute.",
-            "durationSec": 12,
+            "action": "static",
+            "narration": f"Compare Oplit Copilot's optimized schedule to what actually happened on the shop floor. Green means the plan was followed. Deviations are visible instantly, so {client_name}'s managers know exactly where to act.",
+            "durationSec": 13,
         },
         {
             "index": 6,
@@ -142,8 +151,8 @@ def generate_static_script(client_name: str, mode: str, port: int) -> dict:
             "scrollPercent": 0.0,
             "action": "click",
             "selector": "text=Specialized Agents",
-            "narration": "The AI agents work autonomously behind the scenes. Each specialized agent focuses on a domain: inventory, scheduling, demand forecasting, and supplier management.",
-            "durationSec": 12,
+            "narration": "Behind every decision is a team of specialized AI agents, with full transparency and human control at every level. Each agent focuses on a domain: inventory, scheduling, demand, and supplier management.",
+            "durationSec": 13,
         },
         {
             "index": 7,
@@ -151,8 +160,8 @@ def generate_static_script(client_name: str, mode: str, port: int) -> dict:
             "scrollPercent": 0.0,
             "action": "click",
             "selector": "text=Planning Rules",
-            "narration": f"The planning rules engine lets managers define business constraints. The AI analyzes impact, simulates changes, and routes them through a governed approval workflow. From human intent to validated deployment. {client_name}'s factories piloted by AI, with humans in command.",
-            "durationSec": 14,
+            "narration": f"The planning rules engine. Managers define business rules. The AI analyzes impact, simulates changes, and routes them through a governed approval workflow. From human intent to validated deployment. This is the future: {client_name}'s factories piloted by AI, with humans in command.",
+            "durationSec": 16,
         },
     ]
 
